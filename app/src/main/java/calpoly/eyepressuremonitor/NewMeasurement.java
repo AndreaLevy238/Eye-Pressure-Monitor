@@ -1,14 +1,15 @@
 package calpoly.eyepressuremonitor;
 
-
+import android.content.Context;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.text.DateFormat;
 import java.text.DecimalFormat;
@@ -17,9 +18,16 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.Locale;
 
+import ioio.lib.api.DigitalOutput;
+import ioio.lib.api.IOIO;
+import ioio.lib.api.exception.ConnectionLostException;
+import ioio.lib.util.BaseIOIOLooper;
+import ioio.lib.util.IOIOLooper;
 
-public class NewMeasurement extends AppCompatActivity {
+public class NewMeasurement extends AppCompactIOIOActivity {
     private Date date;
+    boolean isLight;
+    Button start;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,7 +35,8 @@ public class NewMeasurement extends AppCompatActivity {
         setContentView(R.layout.activity_new_measurement);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        Button start = findViewById(R.id.newMeasurement);
+        isLight = false;
+        start = findViewById(R.id.newMeasurement);
         start.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -45,6 +54,7 @@ public class NewMeasurement extends AppCompatActivity {
         return true;
     }
 
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle action bar item clicks here. The action bar will
@@ -59,6 +69,7 @@ public class NewMeasurement extends AppCompatActivity {
         displayPressure(20.002);
         displayTime();
         displayFreq(35.555);
+        isLight = !isLight;
     }
 
     public void displayTime() {
@@ -73,6 +84,7 @@ public class NewMeasurement extends AppCompatActivity {
         textView.setText(df.format(pressure));
         textView.setVisibility(View.VISIBLE);
     }
+
 
     public void displayFreq(double raw) {
         TextView textView = findViewById(R.id.raw);
@@ -95,5 +107,85 @@ public class NewMeasurement extends AppCompatActivity {
 
     public void setDate(Date date) {
         this.date = date;
+    }
+
+    @Override
+    protected IOIOLooper createIOIOLooper() {
+        return new Looper();
+    }
+
+    private void showVersions(IOIO ioio, String title) {
+        toast(String.format("%s\n" +
+                        "IOIOLib: %s\n" +
+                        "Application firmware: %s\n" +
+                        "Bootloader firmware: %s\n" +
+                        "Hardware: %s",
+                title,
+                ioio.getImplVersion(IOIO.VersionType.IOIOLIB_VER),
+                ioio.getImplVersion(IOIO.VersionType.APP_FIRMWARE_VER),
+                ioio.getImplVersion(IOIO.VersionType.BOOTLOADER_VER),
+                ioio.getImplVersion(IOIO.VersionType.HARDWARE_VER)));
+    }
+
+    private void toast(final String message) {
+        final Context context = this;
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(context, message, Toast.LENGTH_LONG).show();
+            }
+        });
+    }
+
+
+    class Looper extends BaseIOIOLooper {
+        private DigitalOutput led_;
+
+        @Override
+        protected void setup() throws ConnectionLostException {
+            showVersions(ioio_, "IOIO connected!");
+            led_ = ioio_.openDigitalOutput(0, true);
+            enableUi(true);
+        }
+
+        @Override
+        public void loop() throws ConnectionLostException, InterruptedException {
+            led_.write(isLight);
+            Thread.sleep(100);
+        }
+
+        @Override
+        public void disconnected() {
+            enableUi(false);
+            toast("IOIO disconnected");
+        }
+
+        @Override
+        public void incompatible() {
+            showVersions(ioio_, "Incompatible firmware version!");
+        }
+
+
+    }
+
+    private int numConnected_ = 0;
+
+    private void enableUi(final boolean enable) {
+        // This is slightly trickier than expected to support a multi-IOIO use-case.
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if (enable) {
+                    if (numConnected_++ == 0) {
+                        Log.d("CONNECT", "First item connected");
+                    }
+                } else {
+                    if (--numConnected_ == 0) {
+                        Log.e("DISCONNECT", "Not connected");
+                    }
+                }
+            }
+        });
+
     }
 }
