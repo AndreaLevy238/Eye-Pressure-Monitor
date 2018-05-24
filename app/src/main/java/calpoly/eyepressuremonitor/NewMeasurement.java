@@ -18,8 +18,10 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.Locale;
 
+import ioio.lib.api.DigitalInput;
 import ioio.lib.api.DigitalOutput;
 import ioio.lib.api.IOIO;
+import ioio.lib.api.SpiMaster;
 import ioio.lib.api.exception.ConnectionLostException;
 import ioio.lib.util.BaseIOIOLooper;
 import ioio.lib.util.IOIOLooper;
@@ -28,6 +30,13 @@ public class NewMeasurement extends AppCompactIOIOActivity {
     private Date date;
     boolean isLight;
     Button start;
+    /** SPI settings. */
+    private SpiMaster spi;
+    static final int misoPin = 35;
+    static final int mosiPin = 36;
+    static final int clkPin = 37;
+    int[] ssPins = new int[] { 4, 5, 6, 7, 8 };
+    int ssPin = 4;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,9 +49,16 @@ public class NewMeasurement extends AppCompactIOIOActivity {
         start.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                view.setEnabled(false);
-                newMeasurement();
-                view.setEnabled(true);
+                try {
+                    newMeasurement();
+                }
+                catch (ConnectionLostException e) {
+                    Log.e("NewMeasurement", "Connection Lost Exception");
+                }
+                catch (InterruptedException e) {
+                    Log.e("NewMeasurement", "Interrupted Exception");
+                }
+
             }
         });
     }
@@ -65,11 +81,24 @@ public class NewMeasurement extends AppCompactIOIOActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    public void newMeasurement() {
+    public void newMeasurement() throws ConnectionLostException, InterruptedException {
+        byte[] request = new byte[] { 0x01, 0x02, 0x03, 0x04 };
+        byte[] response = new byte[4];
+        spi.writeRead(0, request, request.length, 7, response, response.length);
+        int rawFreq = getNum(response);
         displayPressure(20.002);
         displayTime();
-        displayFreq(35.555);
+        displayFreq(rawFreq);
         isLight = !isLight;
+        Log.d("LED-newMeasurement", String.valueOf(isLight));
+    }
+
+    /**
+     * @param bytes a byte array that specifies some integer
+     * @return an iteger represented by the bytes
+     */
+    private int getNum(byte[] bytes) {
+        return bytes[3] & 0xFF | (bytes[2] & 0xFF) << 8 | (bytes[1] & 0xFF) << 16 | (bytes[0] & 0xFF) << 24;
     }
 
     public void displayTime() {
@@ -86,10 +115,11 @@ public class NewMeasurement extends AppCompactIOIOActivity {
     }
 
 
-    public void displayFreq(double raw) {
+    public void displayFreq(int num) {
         TextView textView = findViewById(R.id.raw);
-        DecimalFormat df = new DecimalFormat("#.###");
-        textView.setText(df.format(raw));
+//        DecimalFormat df = new DecimalFormat("#.###");
+////        textView.setText(df.format(raw));
+        textView.setText(num);
         textView.setVisibility(View.VISIBLE);
     }
 
@@ -107,11 +137,6 @@ public class NewMeasurement extends AppCompactIOIOActivity {
 
     public void setDate(Date date) {
         this.date = date;
-    }
-
-    @Override
-    protected IOIOLooper createIOIOLooper() {
-        return new Looper();
     }
 
     private void showVersions(IOIO ioio, String title) {
@@ -144,13 +169,18 @@ public class NewMeasurement extends AppCompactIOIOActivity {
         @Override
         protected void setup() throws ConnectionLostException {
             showVersions(ioio_, "IOIO connected!");
-            led_ = ioio_.openDigitalOutput(0, true);
+            spi = ioio_.openSpiMaster(new DigitalInput.Spec(misoPin,
+                            DigitalInput.Spec.Mode.PULL_DOWN), new DigitalOutput.Spec(mosiPin),
+                    new DigitalOutput.Spec(clkPin),
+                    new DigitalOutput.Spec[] { new DigitalOutput.Spec(ssPin) },
+                    new SpiMaster.Config(SpiMaster.Rate.RATE_1M, true, true));
             enableUi(true);
         }
 
         @Override
         public void loop() throws ConnectionLostException, InterruptedException {
             led_.write(isLight);
+            Log.d("LED", String.valueOf(isLight));
             Thread.sleep(100);
         }
 
@@ -187,5 +217,10 @@ public class NewMeasurement extends AppCompactIOIOActivity {
             }
         });
 
+    }
+
+    @Override
+    protected IOIOLooper createIOIOLooper() {
+        return new Looper();
     }
 }
