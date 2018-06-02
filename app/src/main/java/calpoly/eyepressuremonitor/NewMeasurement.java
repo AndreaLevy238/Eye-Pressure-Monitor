@@ -12,7 +12,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.text.DateFormat;
-import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -35,7 +34,7 @@ public class NewMeasurement extends AppCompactIOIOActivity {
     static final int misoPin = 35;
     static final int mosiPin = 36;
     static final int clkPin = 37;
-    int[] ssPins = new int[] { 4, 5, 6, 7, 8 };
+//    int[] ssPins = new int[] { 4, 5, 6, 7, 8 };
     int ssPin = 4;
 
     @Override
@@ -86,7 +85,7 @@ public class NewMeasurement extends AppCompactIOIOActivity {
         byte[] response = new byte[4];
         spi.writeRead(0, request, request.length, 7, response, response.length);
         int rawFreq = getNum(response);
-        displayPressure(20.002);
+        displayPressure(rawFreq);
         displayTime();
         displayFreq(rawFreq);
         isLight = !isLight;
@@ -107,10 +106,11 @@ public class NewMeasurement extends AppCompactIOIOActivity {
         timeView.setVisibility(View.VISIBLE);
     }
 
-    public void displayPressure(double pressure) {
+    public void displayPressure(int pressure) {
         TextView textView = findViewById(R.id.pressure);
-        DecimalFormat df = new DecimalFormat("#.##");
-        textView.setText(df.format(pressure));
+//        DecimalFormat df = new DecimalFormat("#.##");
+//        textView.setText(df.format(pressure));
+        textView.setText(pressure);
         textView.setVisibility(View.VISIBLE);
     }
 
