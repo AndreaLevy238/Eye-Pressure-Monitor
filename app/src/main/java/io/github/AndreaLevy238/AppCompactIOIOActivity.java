@@ -1,4 +1,4 @@
-package calpoly.eyepressuremonitor;
+package io.github.AndreaLevy238;
 
 import android.content.Intent;
 import android.os.Bundle;

@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
-    tools:context=".NewMeasurement"
+    tools:context=".AndreaLevy238.NewMeasurement"
     tools:layout_editor_absoluteY="137dp"
     tools:showIn="@layout/activity_new_measurement">
 
