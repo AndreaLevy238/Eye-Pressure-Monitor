@@ -13,7 +13,7 @@
         tools:ignore="GoogleAppIndexingWarning"
         android:allowBackup="true">
         <activity
-            android:name="io.github.AndreaLevy238.NewMeasurement"
+            android:name="io$github$AndreaLevy238.NewMeasurement"
             android:label="@string/app_name"
             android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>

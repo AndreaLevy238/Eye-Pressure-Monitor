@@ -15,14 +15,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.text.DateFormat;
-import java.text.SimpleDateFormat;
+import java.text.DecimalFormat;
 import java.util.Date;
 import java.util.GregorianCalendar;
-import java.util.Locale;
 
 import ioio.lib.api.DigitalOutput;
 import ioio.lib.api.IOIO;
-import ioio.lib.api.SpiMaster;
 import ioio.lib.api.Uart;
 import ioio.lib.api.exception.ConnectionLostException;
 import ioio.lib.util.BaseIOIOLooper;
@@ -30,40 +28,24 @@ import ioio.lib.util.IOIOLooper;
 
 public class NewMeasurement extends AppCompactIOIOActivity {
     private Date date;
-    boolean isLight;
+    boolean waiting, complete;
     Button start;
-    /** SPI settings. */
-    private SpiMaster spi;
-    private Uart uart;
     static final int rx = 5;
     static final int tx = 6;
-    static final int clk = 7;
-//    int[] ssPins = new int[] { 4, 5, 6, 7, 8 };
-    int ssPin = 4;
-
-    @Override
+    @
+            Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_new_measurement);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        isLight = false;
+        waiting = false;
+        complete = false;
         start = findViewById(R.id.newMeasurement);
         start.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                try {
-                    newMeasurement();
-                }
-                catch (ConnectionLostException e) {
-                    Log.e("NewMeasurement", "Connection Lost Exception");
-                }
-                catch (InterruptedException e) {
-                    Log.e("NewMeasurement", "Interrupted Exception");
-                } catch (IOException e) {
-                    Log.e("NewMeasurement", "IO Exception caused by UART");
-                }
-
+                waiting = true;
             }
         });
     }
@@ -78,26 +60,19 @@ public class NewMeasurement extends AppCompactIOIOActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
         return super.onOptionsItemSelected(item);
     }
 
-    public int getFrequency(int clockticks) {
-        return (clockticks * 8) / 499;
+    public double getFrequency(int clockticks) {
+        return (clockticks * 8.0) / 499;
     }
 
-    public void newMeasurement() throws ConnectionLostException, InterruptedException, IOException {
-       // spi.writeRead(0, request, request.length, 7, response, response.length);
-        int raw = readUart();
-        displayPressure(raw);
-        displayTime();
-        displayFreq(raw);
-        isLight = !isLight;
-        Log.d("LED-newMeasurement", String.valueOf(isLight));
+    private String toHex(byte[] bytes) {
+        StringBuilder sb = new StringBuilder();
+        for (byte b : bytes) {
+            sb.append(String.format("%02X ", b));
+        }
+        return sb.toString();
     }
 
     /**
@@ -105,7 +80,7 @@ public class NewMeasurement extends AppCompactIOIOActivity {
      * @return an iteger represented by the bytes
      */
     private int getNum(byte[] bytes) {
-        return bytes[3] & 0xFF | (bytes[2] & 0xFF) << 8 | (bytes[1] & 0xFF) << 16 | (bytes[0] & 0xFF) << 24;
+        return bytes[1] & 0xFF | (bytes[0] & 0xFF) << 8;
     }
 
     public void displayTime() {
@@ -114,21 +89,18 @@ public class NewMeasurement extends AppCompactIOIOActivity {
         timeView.setVisibility(View.VISIBLE);
     }
 
-    public void displayPressure(int clockticks) {
+    public void displayPressure(int raw) {
         TextView textView = findViewById(R.id.pressure);
-//        DecimalFormat df = new DecimalFormat("#.##");
-//        textView.setText(df.format(pressure));
-        int pressure = getFrequency(clockticks);
-        textView.setText(pressure);
+        textView.setText(raw);
         textView.setVisibility(View.VISIBLE);
     }
 
 
     public void displayFreq(int num) {
         TextView textView = findViewById(R.id.raw);
-//        DecimalFormat df = new DecimalFormat("#.###");
-////        textView.setText(df.format(raw));
-        textView.setText(num);
+        double freq = getFrequency(num);
+        DecimalFormat df = new DecimalFormat("#.###");
+        textView.setText(df.format(freq));
         textView.setVisibility(View.VISIBLE);
     }
 
@@ -138,11 +110,6 @@ public class NewMeasurement extends AppCompactIOIOActivity {
         return dateFormat.format(date);
     }
 
-    public String ASCII_date() {
-        String pattern = "yyyy-MM-dd HH:mm:SS";
-        SimpleDateFormat dateFormat = new SimpleDateFormat(pattern, Locale.getDefault());
-        return dateFormat.format(date);
-    }
 
     public void setDate(Date date) {
         this.date = date;
@@ -174,37 +141,49 @@ public class NewMeasurement extends AppCompactIOIOActivity {
 
     class Looper extends BaseIOIOLooper {
         private DigitalOutput led_;
-
+        private Uart uart_;
+        private OutputStream out_;
+        private InputStream in_;
         @Override
         protected void setup() throws ConnectionLostException {
             showVersions(ioio_, "IOIO connected!");
-            setupUart();
-        }
-
-        /*private void setupSpi() throws ConnectionLostException {
-            spi = ioio_.openSpiMaster(new DigitalInput.Spec(,
-                            DigitalInput.Spec.Mode.PULL_DOWN), new DigitalOutput.Spec(mosiPin),
-                    new DigitalOutput.Spec(clkPin),
-                    new DigitalOutput.Spec[] { new DigitalOutput.Spec(ssPin) },
-                    new SpiMaster.Config(SpiMaster.Rate.RATE_1M, true, true));
-            enableUi(true);
-        }*/
-
-        private void setupUart() throws ConnectionLostException {
             int baud = 34800;
-            uart = ioio_.openUart(rx, tx, baud, Uart.Parity.NONE, Uart.StopBits.ONE);
+            led_ = ioio_.openDigitalOutput(IOIO.LED_PIN, false);
+            uart_ = ioio_.openUart(rx, tx, baud, Uart.Parity.NONE, Uart.StopBits.ONE);
+            in_ = uart_.getInputStream();
+            out_ = uart_.getOutputStream();
+            enableUi(true);
         }
 
         @Override
         public void loop() throws ConnectionLostException, InterruptedException {
-            led_.write(isLight);
-            Log.d("LED", String.valueOf(isLight));
+            if (waiting) {
+                Log.d("UART", "new measurement starting");
+                led_.write(true);
+                Thread.sleep(500);
+                try {
+                    byte[] raw = readUart();
+                    if (raw != null) {
+                        Log.d("UART-newMeasurement", toHex(raw));
+                        int ticks = getNum(raw);
+                        displayPressure(ticks);
+                        displayTime();
+                        displayFreq(ticks);
+                    }
+                }
+                catch (IOException e) {
+                    Log.e("UART_IO", e.getMessage());
+                }
+                waiting = false;
+                led_.write(false);
+            }
             Thread.sleep(100);
         }
 
         @Override
         public void disconnected() {
             enableUi(false);
+            uart_.close();
             toast("IOIO disconnected");
         }
 
@@ -214,16 +193,38 @@ public class NewMeasurement extends AppCompactIOIOActivity {
         }
 
 
+        private byte[] readUart() throws IOException {
+            byte[] bytes = new byte[2];
+            if (uart_ == null) {
+                Log.e("readUART","UART is null");
+                return null;
+            }
+            byte[] one = { 0x7E}; //request data
+            out_.write(one);
+            int i = in_.read(bytes);
+            if (i == -1) {
+                Log.e("readUART", "No data read");
+                return null;
+            }
+            if (i != 2) {
+                Log.e("readUART", "Read incomplete");
+                return null;
+            }
+            return bytes;
+        }
+
+
     }
 
     private int numConnected_ = 0;
 
-    private void enableUi(final boolean enable) {
+    private void enableUi(boolean enable) {
         // This is slightly trickier than expected to support a multi-IOIO use-case.
+        final boolean enabled = enable;
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                if (enable) {
+                if (enabled) {
                     if (numConnected_++ == 0) {
                         Log.d("CONNECT", "First item connected");
                     }
@@ -242,17 +243,6 @@ public class NewMeasurement extends AppCompactIOIOActivity {
         return new Looper();
     }
 
-    private int readUart() throws IOException {
-        OutputStream out = uart.getOutputStream();
-        byte[] one = { 0x7F}; //request data
-        out.write(one);
-        out.close();
 
-        InputStream in = uart.getInputStream();
-        byte[] bytes = {0x00, 0x00};
-        int i = in.read(bytes, 0, 2);
-        in.close();
-        return i;
-    }
 
 }
