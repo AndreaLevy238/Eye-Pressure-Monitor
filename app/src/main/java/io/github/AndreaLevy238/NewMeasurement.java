@@ -30,10 +30,9 @@ public class NewMeasurement extends AppCompactIOIOActivity {
     private Date date;
     boolean waiting, complete;
     Button start;
-    static final int rx = 5;
-    static final int tx = 6;
-    @
-            Override
+    static final int rx = 3;
+    static final int tx = 4;
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_new_measurement);
@@ -129,7 +128,7 @@ public class NewMeasurement extends AppCompactIOIOActivity {
     }
 
     private void toast(final String message) {
-        final Context context = this;
+        final Context context = this.getApplicationContext();
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -160,7 +159,6 @@ public class NewMeasurement extends AppCompactIOIOActivity {
             if (waiting) {
                 Log.d("UART", "new measurement starting");
                 led_.write(true);
-                Thread.sleep(500);
                 try {
                     byte[] raw = readUart();
                     if (raw != null) {
@@ -176,6 +174,15 @@ public class NewMeasurement extends AppCompactIOIOActivity {
                 }
                 waiting = false;
                 led_.write(false);
+            }
+            else {
+                byte[] one = { 0};
+                try {
+                    out_.write(one);
+                }
+                catch (IOException e) {
+                    Log.e("UART_IO", e.getMessage());
+                }
             }
             Thread.sleep(100);
         }
@@ -193,7 +200,7 @@ public class NewMeasurement extends AppCompactIOIOActivity {
         }
 
 
-        private byte[] readUart() throws IOException {
+        private byte[] readUart() throws IOException, InterruptedException{
             byte[] bytes = new byte[2];
             if (uart_ == null) {
                 Log.e("readUART","UART is null");
@@ -201,6 +208,7 @@ public class NewMeasurement extends AppCompactIOIOActivity {
             }
             byte[] one = { 0x7E}; //request data
             out_.write(one);
+            Thread.sleep(500);
             int i = in_.read(bytes);
             if (i == -1) {
                 Log.e("readUART", "No data read");
