@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
-    tools:context=".AndreaLevy238.NewMeasurement"
+    tools:context=".AppCompactIOIOActivity"
     tools:layout_editor_absoluteY="137dp"
     tools:showIn="@layout/activity_new_measurement">
 
@@ -113,7 +113,7 @@
                 android:layout_height="wrap_content">
 
                 <Button
-                    android:id="@+id/newMeasurement"
+                    android:id="@+id/start"
                     style="@style/Base.Widget.AppCompat.Button.Borderless.Colored"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"

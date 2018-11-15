@@ -5,7 +5,7 @@
     android:id="@+id/coordinatorLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".AndreaLevy238.NewMeasurement">
+    tools:context=".NewMeasurement">
 
     <android.support.design.widget.AppBarLayout
         android:id="@+id/appBarLayout"
@@ -29,11 +29,10 @@
         android:id="@+id/include"
         layout="@layout/content_new_measurement"
         android:layout_width="0dp"
-        android:layout_height="0dp"
+        android:layout_height="456dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/appBarLayout" />
+        app:layout_constraintStart_toStartOf="parent" />
 
 
 </android.support.constraint.ConstraintLayout>
