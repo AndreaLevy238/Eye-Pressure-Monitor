@@ -1,5 +1,6 @@
 package io.github.andrealevy238.eyepressuremonitor;
 
+import android.arch.persistence.room.Room;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
@@ -18,6 +19,7 @@ import java.text.DecimalFormat;
 import java.util.Date;
 import java.util.GregorianCalendar;
 
+import ioio.lib.api.DigitalInput;
 import ioio.lib.api.DigitalOutput;
 import ioio.lib.api.IOIO;
 import ioio.lib.api.Uart;
@@ -25,50 +27,52 @@ import ioio.lib.api.exception.ConnectionLostException;
 import ioio.lib.util.BaseIOIOLooper;
 import ioio.lib.util.IOIOLooper;
 
+import static io.github.andrealevy238.eyepressuremonitor.DataConverter.getNum;
+import static io.github.andrealevy238.eyepressuremonitor.DataConverter.toHex;
+
 public class NewMeasurement extends AppCompactIOIOActivity {
-    static final int rx = 3;
+    protected static final int rx = 3;
     static final int tx = 4;
-    final int BUFSIZE = 2;
-    volatile byte[] bytes;
-    Button start;
+    static final int BAUD = 38400;
+    protected volatile byte[] cur;
+    Button start, save;
     private Date date;
     private int numConnected_ = 0;
+    private int ticks;
+    private double freq;
+    private AppDatabase database;
 
-    public static String toHex(byte[] bytes) {
-        StringBuilder sb = new StringBuilder();
-        for (byte b : bytes) {
-            sb.append(String.format("%02X ", b));
-        }
-        return sb.toString();
-    }
-
-    /**
-     * @param bytes a byte array that specifies some integer
-     * @return an iteger represented by the bytes
-     */
-    public static int getNum(byte[] bytes) {
-        return bytes[0] & 0xFF | (bytes[1] & 0xFF) << 8;
+    public static double getFrequency(int clockticks) {
+        return (clockticks * 8.0) / 499;
     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_new_measurement);
+        database = Room.databaseBuilder(getApplicationContext(), AppDatabase.class, "measurement-history.db").build();
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        bytes = new byte[BUFSIZE];
+        setStartButton();
+        setSave();
+    }
+
+    private void setStartButton() {
+        int BUFSIZE = 2;
+        cur = new byte[BUFSIZE];
         start = findViewById(R.id.start);
         start.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                byte[] raw = bytes;
-                int ticks = getNum(raw);
+                byte[] measured = cur;
+                ticks = getNum(measured);
                 displayPressure(ticks);
                 displayTime();
                 displayFreq(ticks);
             }
         });
     }
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -82,12 +86,21 @@ public class NewMeasurement extends AppCompactIOIOActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    public double getFrequency(int clockticks) {
-        return (clockticks * 8.0) / 499;
+    private void setSave() {
+        save = findViewById(R.id.save);
+        save.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Measurement measurement = new Measurement(freq, ticks, date);
+                database.measurementDao().insertAll(measurement);
+                toast("Saved!");
+            }
+        });
     }
 
     public void displayTime() {
         TextView timeView = findViewById(R.id.time);
+        date = new GregorianCalendar().getTime();
         timeView.setText(getDateString());
         timeView.setVisibility(View.VISIBLE);
     }
@@ -99,8 +112,8 @@ public class NewMeasurement extends AppCompactIOIOActivity {
     }
 
     public void displayFreq(int num) {
-        TextView textView = findViewById(R.id.raw);
-        double freq = getFrequency(num);
+        TextView textView = findViewById(R.id.frequency);
+        freq = getFrequency(num);
         DecimalFormat df = new DecimalFormat("#.###");
         textView.setText(df.format(freq));
         textView.setVisibility(View.VISIBLE);
@@ -108,12 +121,11 @@ public class NewMeasurement extends AppCompactIOIOActivity {
 
     public String getDateString() {
         DateFormat dateFormat = DateFormat.getDateTimeInstance();
-        date = new GregorianCalendar().getTime();
         return dateFormat.format(date);
     }
 
-    public void setDate(Date date) {
-        this.date = date;
+    public Date getDate() {
+        return date;
     }
 
     private void showVersions(IOIO ioio, String title) {
@@ -165,31 +177,39 @@ public class NewMeasurement extends AppCompactIOIOActivity {
     }
 
     class Looper extends BaseIOIOLooper {
-        private DigitalOutput led_;
         private Uart uart_;
         private InputStream in_;
 
         @Override
         protected void setup() throws ConnectionLostException {
             showVersions(ioio_, "IOIO connected!");
-            int baud = 34800;
-            led_ = ioio_.openDigitalOutput(IOIO.LED_PIN, false);
-            uart_ = ioio_.openUart(rx, tx, baud, Uart.Parity.NONE, Uart.StopBits.ONE);
-            in_ = uart_.getInputStream();
+            uart_ = ioio_.openUart(new DigitalInput.Spec(rx), new DigitalOutput.Spec(tx), BAUD, Uart.Parity.NONE, Uart.StopBits.ONE);
             enableUi(true);
+            try {
+                Thread.sleep(500);
+                in_ = uart_.getInputStream();
+                Log.v("SetupUART", "sleep complete");
+            } catch (InterruptedException e) {
+                Log.e("Setup_Interrupted-UART", e.getMessage());
+            }
         }
 
         @Override
-        public void loop() throws ConnectionLostException, InterruptedException {
+        public void loop() {
             Log.d("UART", "new measurement starting");
-            led_.write(true);
-            byte[] raw = new byte[BUFSIZE];
-            Thread.sleep(500);
+            if (uart_ != null) {
+                readUART();
+            }
+        }
+
+        private void readUART() {
+            byte[] raw = new byte[10];
             try {
-                Log.d("UART", "attempting to read...");
-                int i = in_.read(raw);
-                if (i == -1) {
-                    Log.i("readUART", "No data read");
+                if (in_.available() > 0) {
+                    int i = in_.read(raw);
+                    Log.v("UART", "read complete, read " + String.valueOf(i) + " cur");
+                } else {
+                    Log.v("UART", "Read failed");
                     raw = null;
                 }
             } catch (IOException e) {
@@ -198,10 +218,9 @@ public class NewMeasurement extends AppCompactIOIOActivity {
             }
             if (raw != null) {
                 Log.d("UART-read", toHex(raw));
-                bytes = raw;
+                cur[0] = raw[0];
+                cur[1] = raw[1];
             }
-            led_.write(false);
-            Thread.sleep(10);
         }
 
         @Override
@@ -215,7 +234,6 @@ public class NewMeasurement extends AppCompactIOIOActivity {
         public void incompatible() {
             showVersions(ioio_, "Incompatible firmware version!");
         }
-
 
     }
 
