@@ -1,7 +1,7 @@
 package io.github.andrealevy238.eyepressuremonitor;
 
+import android.arch.lifecycle.LiveData;
 import android.arch.persistence.room.Dao;
-import android.arch.persistence.room.Delete;
 import android.arch.persistence.room.Insert;
 import android.arch.persistence.room.Query;
 
@@ -11,17 +11,17 @@ import java.util.List;
 @Dao
 public interface MeasurementDao {
     @Query("select * from measurement")
-    List<Measurement> getAll();
+    LiveData<List<Measurement>> getAll();
 
     @Query("select Frequency from measurement where Time > :date")
-    List<Double> getFrequencyAfterDate(Date date);
+    LiveData<List<Double>> getFrequencyAfterDate(Date date);
 
     @Query("select Pressure from measurement where Time > :date")
-    List<Integer> getPressureAfterDate(Date date);
+    LiveData<List<Integer>> getPressureAfterDate(Date date);
 
     @Insert
-    void insertAll(Measurement... measurements);
+    void insert(Measurement measurement);
 
-    @Delete
-    void delete(Measurement measurement);
+    @Query("DELETE from measurement")
+    void deleteAll();
 }

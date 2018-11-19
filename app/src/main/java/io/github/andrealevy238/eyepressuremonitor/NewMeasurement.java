@@ -1,6 +1,5 @@
 package io.github.andrealevy238.eyepressuremonitor;
 
-import android.arch.persistence.room.Room;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
@@ -40,8 +39,7 @@ public class NewMeasurement extends AppCompactIOIOActivity {
     private int numConnected_ = 0;
     private int ticks;
     private double freq;
-    private AppDatabase database;
-
+    MeasurementViewModel model;
     public static double getFrequency(int clockticks) {
         return (clockticks * 8.0) / 499;
     }
@@ -50,7 +48,8 @@ public class NewMeasurement extends AppCompactIOIOActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_new_measurement);
-        database = Room.databaseBuilder(getApplicationContext(), AppDatabase.class, "measurement-history.db").build();
+        freq = -1;
+        model = new MeasurementViewModel(getApplication());
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         setStartButton();
@@ -91,9 +90,13 @@ public class NewMeasurement extends AppCompactIOIOActivity {
         save.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Measurement measurement = new Measurement(freq, ticks, date);
-                database.measurementDao().insertAll(measurement);
-                toast("Saved!");
+                if (freq < 0) {
+                    toast("No measurement gotten! Failed to save");
+                } else {
+                    Measurement measurement = new Measurement(freq, ticks, date);
+                    model.insert(measurement);
+                    toast("Saved!");
+                }
             }
         });
     }

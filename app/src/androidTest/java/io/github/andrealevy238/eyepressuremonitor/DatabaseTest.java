@@ -37,8 +37,9 @@ public class DatabaseTest {
         gc.set(1900, 1, 1, 10, 10, 10);
         Date date = gc.getTime();
         Measurement measurement = new Measurement(0.00, 0, date);
-        dao.insertAll(measurement);
-        List<Measurement> mList = dao.getAll();
+        dao.insert(measurement);
+        List<Measurement> mList = dao.getAll().getValue();
+        assert mList != null;
         assertEquals(date, mList.get(0).time);
         assertEquals(0.00, mList.get(0).frequency, 0.001);
         assertEquals(0, mList.get(0).pressure);
@@ -52,8 +53,9 @@ public class DatabaseTest {
         gc.set(1950, 1, 1);
         Date dateAfter = gc.getTime();
         Measurement measurement = new Measurement(0.00, 20, date);
-        dao.insertAll(measurement);
-        List<Integer> mList = dao.getPressureAfterDate(dateAfter);
+        dao.insert(measurement);
+        List<Integer> mList = dao.getPressureAfterDate(dateAfter).getValue();
+        assert mList != null;
         Integer first = mList.get(0);
         Integer twenty = 20;
         assertEquals(twenty, first);
@@ -67,8 +69,9 @@ public class DatabaseTest {
         gc.set(2000, 1, 1);
         Date dateAfter = gc.getTime();
         Measurement measurement = new Measurement(3.14, 20, date);
-        dao.insertAll(measurement);
-        List<Double> mList = dao.getFrequencyAfterDate(dateAfter);
+        dao.insert(measurement);
+        List<Double> mList = dao.getFrequencyAfterDate(dateAfter).getValue();
+        assert mList != null;
         Double first = mList.get(0);
         assertEquals(3.14, first, 0.001);
     }
