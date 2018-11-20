@@ -7,6 +7,10 @@
     <string name="start">start</string>
     <string name="save">save</string>
     <string name="frequency">Frequency</string>
-    <string name="new_measurement">New Measurement</string>
     <string name="pressure">Pressure</string>
+    <string name="new_measurement">New Measurement</string>
+    <string name="history">History</string>
+    <string name="title_activity_history">HistoryActivity</string>
+    <string name="pressure_vs_time">Pressure vs. Time</string>
+    <string name="frequency_vs_time">Frequency vs. Time</string>
 </resources>

@@ -10,34 +10,18 @@ import java.util.List;
 public class MeasurementRepository {
     private MeasurementDao measurementDao;
     private LiveData<List<Measurement>> allMeasurements;
-    private LiveData<List<Integer>> allPressures;
-    private LiveData<List<Double>> allFrequencies;
 
-    MeasurementRepository(Application application) {
+
+    MeasurementRepository(Application application, Date date) {
         AppDatabase db = AppDatabase.getDatabase(application);
         measurementDao = db.measurementDao();
-        allMeasurements = measurementDao.getAll();
+        allMeasurements = measurementDao.getAll(date);
     }
 
     LiveData<List<Measurement>> getAllMeasurements() {
         return allMeasurements;
     }
 
-    public LiveData<List<Integer>> getAllPressures() {
-        return allPressures;
-    }
-
-    public void setAllPressuresAfterDate(Date date) {
-        this.allPressures = measurementDao.getPressureAfterDate(date);
-    }
-
-    public void setAllFrequenciesAfterDate(Date date) {
-        this.allFrequencies = measurementDao.getFrequencyAfterDate(date);
-    }
-
-    public LiveData<List<Double>> getAllFrequencies() {
-        return allFrequencies;
-    }
 
     public void insert(Measurement measurement) {
         new insertAsyncTask(measurementDao).execute(measurement);
