@@ -10,7 +10,10 @@
     <string name="pressure">Pressure</string>
     <string name="new_measurement">New Measurement</string>
     <string name="history">History</string>
-    <string name="title_activity_history">HistoryActivity</string>
+    <string name="title_activity_history">History</string>
     <string name="pressure_vs_time">Pressure vs. Time</string>
     <string name="frequency_vs_time">Frequency vs. Time</string>
+    <string name="title_activity_pressure">Pressure vs. Time</string>
+    <string name="title_activity_frequency">Frequency vs. Time</string>
+    <string name="eye_pressure_monitor">Eye Pressure Monitor</string>
 </resources>

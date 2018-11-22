@@ -26,7 +26,7 @@ public class MeasurementViewModel extends AndroidViewModel {
         measurements = mRepository.getAllMeasurements();
     }
 
-    private Date sixMonthsAgo() {
+    public Date sixMonthsAgo() {
         Calendar c = Calendar.getInstance();
         c.add(Calendar.MONTH, -6);
         return c.getTime();

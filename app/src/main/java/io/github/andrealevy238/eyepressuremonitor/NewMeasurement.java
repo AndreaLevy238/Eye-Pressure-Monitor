@@ -37,6 +37,8 @@ import static io.github.andrealevy238.eyepressuremonitor.DataConverter.toHex;
 public class NewMeasurement extends AppCompactIOIOActivity {
     protected static final int rx = 3;
     static final int tx = 4;
+    static final int cts = 11;
+    static final int rts = 10;
     static final int BAUD = 38400;
     protected volatile byte[] cur;
     Button start, save;
@@ -101,18 +103,24 @@ public class NewMeasurement extends AppCompactIOIOActivity {
                         // close drawer when item is tapped
                         mDrawerLayout.closeDrawers();
 
-                        // Add code here to update the UI based on the item selected
-                        // For example, swap UI fragments here
-                        if (menuItem.getItemId() == R.id.nav_history) {
-                            startHistory();
+                        //open activities for new types of measurements
+                        if (menuItem.getItemId() == R.id.nav_pressure) {
+                            startPressure();
+                        } else if (menuItem.getItemId() == R.id.nav_frequency) {
+                            startFrequency();
                         }
                         return true;
                     }
                 });
     }
 
-    private void startHistory() {
-        Intent intent = new Intent(this, HistoryActivity.class);
+    private void startPressure() {
+        Intent intent = new Intent(this, PressureActivity.class);
+        startActivity(intent);
+    }
+
+    private void startFrequency() {
+        Intent intent = new Intent(this, FrequencyActivity.class);
         startActivity(intent);
     }
 
@@ -248,11 +256,14 @@ public class NewMeasurement extends AppCompactIOIOActivity {
     class Looper extends BaseIOIOLooper {
         private Uart uart_;
         private InputStream in_;
-
+        private DigitalOutput cts_out;
+        private DigitalOutput rts_out;
         @Override
         protected void setup() throws ConnectionLostException {
             showVersions(ioio_, "IOIO connected!");
             uart_ = ioio_.openUart(new DigitalInput.Spec(rx), new DigitalOutput.Spec(tx), BAUD, Uart.Parity.NONE, Uart.StopBits.ONE);
+            cts_out = ioio_.openDigitalOutput(cts);
+            rts_out = ioio_.openDigitalOutput(rts);
             enableUi(true);
             try {
                 Thread.sleep(500);
@@ -265,7 +276,7 @@ public class NewMeasurement extends AppCompactIOIOActivity {
 
         @Override
         public void loop() {
-            Log.d("UART", "new measurement starting");
+            Log.v("UART", "new measurement starting");
             if (uart_ != null) {
                 readUART();
             }
@@ -274,13 +285,8 @@ public class NewMeasurement extends AppCompactIOIOActivity {
         private void readUART() {
             byte[] raw = new byte[10];
             try {
-                if (in_.available() > 0) {
-                    int i = in_.read(raw);
-                    Log.v("UART", "read complete, read " + String.valueOf(i) + " cur");
-                } else {
-                    Log.v("UART", "Read failed");
-                    raw = null;
-                }
+                int i = in_.read(raw);
+                Log.d("UART", "read complete, read " + String.valueOf(i) + " cur");
             } catch (IOException e) {
                 Log.e("UART_IO", e.getMessage());
                 raw = null;
@@ -296,6 +302,8 @@ public class NewMeasurement extends AppCompactIOIOActivity {
         public void disconnected() {
             enableUi(false);
             uart_.close();
+            rts_out.close();
+            cts_out.close();
             toast("IOIO disconnected");
         }
 

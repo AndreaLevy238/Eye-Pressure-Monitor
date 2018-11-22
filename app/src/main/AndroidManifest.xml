@@ -13,6 +13,10 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+        <uses-library
+            android:name="com.android.future.usb.accessory"
+            android:required="false" />
+
         <activity
             android:name=".NewMeasurement"
             android:label="@string/app_name"
@@ -25,10 +29,32 @@
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
             </intent-filter>
+            <intent-filter>
+                <action android:name="android.hardware.usb.action.USB_ACCESSORY_ATTACHED" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.hardware.usb.action.USB_ACCESSORY_ATTACHED"
+                android:resource="@xml/accessory_filter" />
+            <meta-data
+                android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED"
+                android:resource="@xml/device_filter" />
         </activity>
         <activity
-            android:name=".HistoryActivity"
-            android:label="@string/title_activity_history"
+            android:name=".PressureActivity"
+            android:label="@string/title_activity_pressure"
+            android:parentActivityName=".NewMeasurement"
+            android:theme="@style/AppTheme">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="io.github.andrealevy238.eyepressuremonitor.NewMeasurement" />
+        </activity>
+        <activity
+            android:name=".FrequencyActivity"
+            android:label="@string/title_activity_frequency"
             android:parentActivityName=".NewMeasurement"
             android:theme="@style/AppTheme">
             <meta-data

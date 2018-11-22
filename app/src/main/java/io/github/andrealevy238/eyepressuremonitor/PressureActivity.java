@@ -10,83 +10,62 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
-import android.view.View;
 
 import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.helper.DateAsXAxisLabelFormatter;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
-import java.util.Objects;
+import java.util.Locale;
 
-public class HistoryActivity extends AppCompatActivity {
-
+public class PressureActivity extends AppCompatActivity {
     private DrawerLayout mDrawerLayout;
     private MeasurementViewModel model;
-    private DataPoint[] pressures;
-    private DataPoint[] frequencies;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_history);
+        setContentView(R.layout.activity_pressure);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
-        setDrawer();
         setNav();
+        mDrawerLayout = findViewById(R.id.drawerLayoutPressure);
         model = new MeasurementViewModel(getApplication());
-        getMeasurements();
         GraphView pGraph = findViewById(R.id.pressureGraph);
-        GraphView fGraph = findViewById(R.id.frequencyGraph);
-        graph(pGraph, pressures);
-        graph(fGraph, frequencies);
-    }
-
-    private void getMeasurements() {
-        List<Measurement> measurements = model.getMeasurements().getValue();
-        int size = measurements != null ? measurements.size() : 0;
-        pressures = new DataPoint[size];
-        frequencies = new DataPoint[size];
-        for (int i = 0; i < size; i++) {
-            Measurement m = measurements.get(i);
-            pressures[i] = new DataPoint(m.time, m.pressure);
-            frequencies[i] = new DataPoint(m.time, m.frequency);
-        }
+        DataPoint[] data = getMeasurements();
+        graph(pGraph, data);
     }
 
     private void graph(GraphView graphView, DataPoint[] dataPoints) {
         LineGraphSeries<DataPoint> series = new LineGraphSeries<>(dataPoints);
         graphView.addSeries(series);
-        graphView.getGridLabelRenderer().setLabelFormatter(new DateAsXAxisLabelFormatter(getApplicationContext()));
+        String pattern = "MMM";
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat(pattern, Locale.US);
+        DateAsXAxisLabelFormatter d = new DateAsXAxisLabelFormatter(getApplicationContext(), simpleDateFormat);
+        graphView.getGridLabelRenderer().setLabelFormatter(d);
+        Date min = model.sixMonthsAgo();
+        long now = System.currentTimeMillis();
+        graphView.getViewport().setMinX(min.getTime());
+        graphView.getViewport().setMaxX(now);
+        graphView.getGridLabelRenderer().setHumanRounding(false);
+        graphView.getGridLabelRenderer().setNumHorizontalLabels(6);
+        graphView.getViewport().setXAxisBoundsManual(true);
     }
 
+    private DataPoint[] getMeasurements() {
+        List<Measurement> measurements = model.getMeasurements().getValue();
+        int size = measurements != null ? measurements.size() : 0;
+        DataPoint[] pressures = new DataPoint[size];
 
-    private void setDrawer() {
-        mDrawerLayout = findViewById(R.id.drawerLayoutNewMeasurement);
-        mDrawerLayout.addDrawerListener(new DrawerLayout.DrawerListener() {
-            @Override
-            public void onDrawerSlide(@NonNull View drawerView, float slideOffset) {
-
-            }
-
-            @Override
-            public void onDrawerOpened(@NonNull View drawerView) {
-            }
-
-            @Override
-            public void onDrawerClosed(@NonNull View drawerView) {
-
-            }
-
-            @Override
-            public void onDrawerStateChanged(int newState) {
-
-            }
-        });
+        for (int i = 0; i < size; i++) {
+            Measurement m = measurements.get(i);
+            pressures[i] = new DataPoint(m.time, m.pressure);
+        }
+        return pressures;
     }
-
 
     private void setNav() {
         NavigationView navigationView = findViewById(R.id.nav_view);
@@ -101,7 +80,11 @@ public class HistoryActivity extends AppCompatActivity {
 
                         // Add code here to update the UI based on the item selected
                         // For example, swap UI fragments here
-                        startNewMeasurement();
+                        if (menuItem.getItemId() == R.id.nav_new_measurement) {
+                            startNewMeasurement();
+                        } else if (menuItem.getItemId() == R.id.nav_frequency) {
+                            startFrequency();
+                        }
                         return true;
                     }
                 });
@@ -109,6 +92,11 @@ public class HistoryActivity extends AppCompatActivity {
 
     private void startNewMeasurement() {
         Intent intent = new Intent(this, NewMeasurement.class);
+        startActivity(intent);
+    }
+
+    private void startFrequency() {
+        Intent intent = new Intent(this, FrequencyActivity.class);
         startActivity(intent);
     }
 
