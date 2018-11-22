@@ -48,8 +48,9 @@ public class NewMeasurement extends AppCompactIOIOActivity {
     private double freq;
     MeasurementViewModel model;
     private DrawerLayout mDrawerLayout;
-    public static double getFrequency(int clockticks) {
-        return (clockticks * 8.0) / 499;
+
+    public static double getFrequency(int clockTicks) {
+        return (clockTicks * 8.0) / 499;
     }
 
     @Override
@@ -133,11 +134,15 @@ public class NewMeasurement extends AppCompactIOIOActivity {
         start.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                byte[] measured = cur;
-                ticks = getNum(measured);
-                displayPressure(ticks);
-                displayTime();
-                displayFreq(ticks);
+                if (numConnected_ > 0) {
+                    byte[] measured = cur;
+                    ticks = getNum(measured);
+                    displayPressure(ticks);
+                    displayTime();
+                    displayFreq(ticks);
+                } else {
+                    toast("Nothing connected!");
+                }
             }
         });
     }

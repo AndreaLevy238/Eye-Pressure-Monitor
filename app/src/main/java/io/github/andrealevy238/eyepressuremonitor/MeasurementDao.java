@@ -15,7 +15,4 @@ public interface MeasurementDao {
 
     @Insert
     void insert(Measurement measurement);
-
-    @Query("DELETE from measurement")
-    void deleteAll();
 }
