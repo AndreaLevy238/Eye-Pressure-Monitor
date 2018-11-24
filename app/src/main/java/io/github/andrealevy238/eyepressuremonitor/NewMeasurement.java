@@ -105,24 +105,34 @@ public class NewMeasurement extends AppCompactIOIOActivity {
                         mDrawerLayout.closeDrawers();
 
                         //open activities for new types of measurements
-                        if (menuItem.getItemId() == R.id.nav_pressure) {
-                            startPressure();
-                        } else if (menuItem.getItemId() == R.id.nav_frequency) {
-                            startFrequency();
-                        }
+                        startNewActivity(menuItem);
                         return true;
                     }
                 });
     }
 
-    private void startPressure() {
-        Intent intent = new Intent(this, PressureActivity.class);
-        startActivity(intent);
-    }
-
-    private void startFrequency() {
-        Intent intent = new Intent(this, FrequencyActivity.class);
-        startActivity(intent);
+    private void startNewActivity(MenuItem menuItem) {
+        Intent intent = null;
+        switch (menuItem.getItemId()) {
+            case R.id.nav_new_measurement:
+                intent = new Intent(this, NewMeasurement.class);
+                break;
+            case R.id.nav_frequency:
+                intent = new Intent(this, FrequencyActivity.class);
+                break;
+            case R.id.nav_pressure:
+                intent = new Intent(this, PressureActivity.class);
+                break;
+            case R.id.nav_frequency_today:
+                intent = new Intent(this, FrequencyToday.class);
+                break;
+            case R.id.nav_pressure_today:
+                intent = new Intent(this, PressureToday.class);
+                break;
+        }
+        if (intent != null) {
+            startActivity(intent);
+        }
     }
 
 

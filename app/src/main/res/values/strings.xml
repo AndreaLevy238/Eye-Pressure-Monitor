@@ -11,9 +11,16 @@
     <string name="new_measurement">New Measurement</string>
     <string name="history">History</string>
     <string name="title_activity_history">History</string>
-    <string name="pressure_vs_time">Pressure vs. Time</string>
-    <string name="frequency_vs_time">Frequency vs. Time</string>
-    <string name="title_activity_pressure">Pressure vs. Time</string>
-    <string name="title_activity_frequency">Frequency vs. Time</string>
+    <string name="pressure_vs_time">Pressure vs. Time (6 months)</string>
+    <string name="frequency_vs_time">Frequency vs. Time (6 months)</string>
+    <string name="title_activity_pressure">Pressure vs. Time (6 months)</string>
+    <string name="title_activity_frequency">Frequency vs. Time (6 months)</string>
     <string name="eye_pressure_monitor">Eye Pressure Monitor</string>
+    <string name="title_activity_frequency_today">Frequency vs Time (24 hours)</string>
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="nav_header_title">Android Studio</string>
+    <string name="nav_header_subtitle">android.studio@android.com</string>
+    <string name="nav_header_desc">Navigation header</string>
+    <string name="title_activity_pressure_today">Pressure vs. Time (today)</string>
 </resources>

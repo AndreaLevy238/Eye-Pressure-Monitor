@@ -80,24 +80,31 @@ public class PressureActivity extends AppCompatActivity {
 
                         // Add code here to update the UI based on the item selected
                         // For example, swap UI fragments here
-                        if (menuItem.getItemId() == R.id.nav_new_measurement) {
-                            startNewMeasurement();
-                        } else if (menuItem.getItemId() == R.id.nav_frequency) {
-                            startFrequency();
-                        }
+                        startNewActivity(menuItem);
                         return true;
                     }
                 });
     }
 
-    private void startNewMeasurement() {
-        Intent intent = new Intent(this, NewMeasurement.class);
-        startActivity(intent);
-    }
-
-    private void startFrequency() {
-        Intent intent = new Intent(this, FrequencyActivity.class);
-        startActivity(intent);
+    private void startNewActivity(MenuItem menuItem) {
+        Intent intent = null;
+        switch (menuItem.getItemId()) {
+            case R.id.nav_new_measurement:
+                intent = new Intent(this, NewMeasurement.class);
+                break;
+            case R.id.nav_frequency:
+                intent = new Intent(this, FrequencyActivity.class);
+                break;
+            case R.id.nav_pressure:
+                intent = new Intent(this, PressureActivity.class);
+                break;
+            case R.id.nav_frequency_today:
+                intent = new Intent(this, FrequencyToday.class);
+                break;
+        }
+        if (intent != null) {
+            startActivity(intent);
+        }
     }
 
     @Override

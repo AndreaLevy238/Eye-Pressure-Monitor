@@ -21,9 +21,12 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-public class FrequencyActivity extends AppCompatActivity {
+import static io.github.andrealevy238.eyepressuremonitor.FrequencyToday.get24HoursAgo;
+
+public class PressureToday extends AppCompatActivity {
     private DrawerLayout mDrawerLayout;
     private MeasurementViewModel model;
+    private Date h24;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,26 +34,25 @@ public class FrequencyActivity extends AppCompatActivity {
         setContentView(R.layout.activity_frequency);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        mDrawerLayout = findViewById(R.id.drawerLayoutFrequency);
+        mDrawerLayout = findViewById(R.id.drawerLayoutPressureToday);
+        h24 = get24HoursAgo();
         setNav();
-        model = new MeasurementViewModel(getApplication());
-        GraphView pGraph = findViewById(R.id.frequencyGraph);
-        graph(pGraph, getMeasurements());
+        model = new MeasurementViewModel(getApplication(), h24);
+        GraphView graphView = findViewById(R.id.pressureGraphToday);
+        graph(graphView, getMeasurements());
     }
 
     private void graph(GraphView graphView, DataPoint[] dataPoints) {
         LineGraphSeries<DataPoint> series = new LineGraphSeries<>(dataPoints);
         graphView.addSeries(series);
-        String pattern = "MMM";
+        String pattern = "hh:mm";
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat(pattern, Locale.US);
         DateAsXAxisLabelFormatter d = new DateAsXAxisLabelFormatter(getApplicationContext(), simpleDateFormat);
         graphView.getGridLabelRenderer().setLabelFormatter(d);
-        Date min = model.sixMonthsAgo();
         long now = System.currentTimeMillis();
-        graphView.getViewport().setMinX(min.getTime());
+        graphView.getViewport().setMinX(h24.getTime());
         graphView.getViewport().setMaxX(now);
         graphView.getGridLabelRenderer().setHumanRounding(false);
-        graphView.getGridLabelRenderer().setNumHorizontalLabels(6);
         graphView.getViewport().setXAxisBoundsManual(true);
     }
 
@@ -76,13 +78,13 @@ public class FrequencyActivity extends AppCompatActivity {
     private DataPoint[] getMeasurements() {
         List<Measurement> measurements = model.getMeasurements().getValue();
         int size = measurements != null ? measurements.size() : 0;
-        DataPoint[] frequencies = new DataPoint[size];
+        DataPoint[] pressures = new DataPoint[size];
 
         for (int i = 0; i < size; i++) {
             Measurement m = measurements.get(i);
-            frequencies[i] = new DataPoint(m.time, m.frequency);
+            pressures[i] = new DataPoint(m.time, m.pressure);
         }
-        return frequencies;
+        return pressures;
     }
 
     private void startNewActivity(MenuItem menuItem) {
@@ -108,7 +110,6 @@ public class FrequencyActivity extends AppCompatActivity {
             startActivity(intent);
         }
     }
-
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {

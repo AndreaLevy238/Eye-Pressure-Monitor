@@ -17,13 +17,21 @@ import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
 
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-public class FrequencyActivity extends AppCompatActivity {
+public class FrequencyToday extends AppCompatActivity {
     private DrawerLayout mDrawerLayout;
     private MeasurementViewModel model;
+    private Date h24;
+
+    static Date get24HoursAgo() {
+        Calendar calendar = Calendar.getInstance();
+        calendar.add(Calendar.HOUR, -24);
+        return calendar.getTime();
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,26 +39,25 @@ public class FrequencyActivity extends AppCompatActivity {
         setContentView(R.layout.activity_frequency);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        mDrawerLayout = findViewById(R.id.drawerLayoutFrequency);
+        mDrawerLayout = findViewById(R.id.drawerLayoutFrequencyToday);
+        h24 = get24HoursAgo();
         setNav();
-        model = new MeasurementViewModel(getApplication());
-        GraphView pGraph = findViewById(R.id.frequencyGraph);
-        graph(pGraph, getMeasurements());
+        model = new MeasurementViewModel(getApplication(), h24);
+        GraphView graphView = findViewById(R.id.frequencyGraphToday);
+        graph(graphView, getMeasurements());
     }
 
     private void graph(GraphView graphView, DataPoint[] dataPoints) {
         LineGraphSeries<DataPoint> series = new LineGraphSeries<>(dataPoints);
         graphView.addSeries(series);
-        String pattern = "MMM";
+        String pattern = "hh:mm";
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat(pattern, Locale.US);
         DateAsXAxisLabelFormatter d = new DateAsXAxisLabelFormatter(getApplicationContext(), simpleDateFormat);
         graphView.getGridLabelRenderer().setLabelFormatter(d);
-        Date min = model.sixMonthsAgo();
         long now = System.currentTimeMillis();
-        graphView.getViewport().setMinX(min.getTime());
+        graphView.getViewport().setMinX(h24.getTime());
         graphView.getViewport().setMaxX(now);
         graphView.getGridLabelRenderer().setHumanRounding(false);
-        graphView.getGridLabelRenderer().setNumHorizontalLabels(6);
         graphView.getViewport().setXAxisBoundsManual(true);
     }
 
@@ -108,7 +115,6 @@ public class FrequencyActivity extends AppCompatActivity {
             startActivity(intent);
         }
     }
-
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
