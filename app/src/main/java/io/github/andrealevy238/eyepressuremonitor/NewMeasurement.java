@@ -271,45 +271,47 @@ public class NewMeasurement extends AppCompactIOIOActivity {
     class Looper extends BaseIOIOLooper {
         private Uart uart_;
         private InputStream in_;
-        private DigitalOutput cts_out;
-        private DigitalOutput rts_out;
+        private DigitalOutput led;
         @Override
         protected void setup() throws ConnectionLostException {
             showVersions(ioio_, "IOIO connected!");
             uart_ = ioio_.openUart(new DigitalInput.Spec(rx), new DigitalOutput.Spec(tx), BAUD, Uart.Parity.NONE, Uart.StopBits.ONE);
-            cts_out = ioio_.openDigitalOutput(cts);
-            rts_out = ioio_.openDigitalOutput(rts);
+            led = ioio_.openDigitalOutput(IOIO.LED_PIN);
             enableUi(true);
-            try {
-                Thread.sleep(500);
-                in_ = uart_.getInputStream();
-                Log.v("SetupUART", "sleep complete");
-            } catch (InterruptedException e) {
-                Log.e("Setup_Interrupted-UART", e.getMessage());
-            }
+            led.write(true);
+            in_ = uart_.getInputStream();
+            Log.v("SetupUART", "sleep complete");
         }
 
         @Override
         public void loop() {
             Log.v("UART", "new measurement starting");
             if (uart_ != null) {
-                readUART();
+                try {
+                    readUART();
+                } catch (Exception e) {
+                    Log.e("UART_Exception", e.getMessage());
+                }
             }
         }
 
-        private void readUART() {
+        private void readUART() throws ConnectionLostException {
             byte[] raw = new byte[10];
+            int i = -1;
             try {
-                int i = in_.read(raw);
-                Log.d("UART", "read complete, read " + String.valueOf(i) + " cur");
+                led.write(false);
+                i = in_.read(raw);
+                led.write(true);
+                Log.d("UART", "read complete, read " + String.valueOf(i) + " bytes");
             } catch (IOException e) {
                 Log.e("UART_IO", e.getMessage());
                 raw = null;
             }
-            if (raw != null) {
+            if (raw != null && i > 1) {
                 Log.d("UART-read", toHex(raw));
-                cur[0] = raw[0];
-                cur[1] = raw[1];
+                int b0 = i % 2;
+                cur[0] = raw[b0];
+                cur[1] = raw[b0 + 1];
             }
         }
 
@@ -317,8 +319,6 @@ public class NewMeasurement extends AppCompactIOIOActivity {
         public void disconnected() {
             enableUi(false);
             uart_.close();
-            rts_out.close();
-            cts_out.close();
             toast("IOIO disconnected");
         }
 
