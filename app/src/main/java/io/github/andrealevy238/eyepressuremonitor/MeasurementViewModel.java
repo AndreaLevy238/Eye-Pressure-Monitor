@@ -32,8 +32,8 @@ public class MeasurementViewModel extends AndroidViewModel {
         return c.getTime();
     }
 
-    public LiveData<List<Measurement>> getMeasurements() {
-        return measurements;
+    public List<Measurement> getMeasurements() {
+        return measurements.getValue();
     }
 
     public void insert(Measurement m) {

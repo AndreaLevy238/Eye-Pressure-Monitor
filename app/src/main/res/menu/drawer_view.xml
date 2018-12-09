@@ -16,10 +16,10 @@
         <item
             android:id="@+id/nav_pressure_today"
             android:icon="@drawable/ic_trending_up_black_24p"
-            android:title="@string/pressure_vs_time" />
+            android:title="@string/pressure_v_time_today" />
         <item
             android:id="@+id/nav_frequency_today"
             android:icon="@drawable/ic_trending_up_black_24p"
-            android:title="@string/frequency_vs_time" />
+            android:title="@string/frequency_v_time_today" />
     </group>
 </menu>

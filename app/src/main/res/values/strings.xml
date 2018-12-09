@@ -11,8 +11,8 @@
     <string name="new_measurement">New Measurement</string>
     <string name="history">History</string>
     <string name="title_activity_history">History</string>
-    <string name="pressure_vs_time">Pressure vs. Time (6 months)</string>
-    <string name="frequency_vs_time">Frequency vs. Time (6 months)</string>
+    <string name="pressure_vs_time">Pressure v. Time (6 months)</string>
+    <string name="frequency_vs_time">Frequency v. Time (6 months)</string>
     <string name="title_activity_pressure">Pressure vs. Time (6 months)</string>
     <string name="title_activity_frequency">Frequency vs. Time (6 months)</string>
     <string name="eye_pressure_monitor">Eye Pressure Monitor</string>
@@ -22,5 +22,7 @@
     <string name="nav_header_title">Android Studio</string>
     <string name="nav_header_subtitle">android.studio@android.com</string>
     <string name="nav_header_desc">Navigation header</string>
-    <string name="title_activity_pressure_today">Pressure vs. Time (today)</string>
+    <string name="title_activity_pressure_today">Pressure vs. Time (Today)</string>
+    <string name="pressure_v_time_today">Pressure v. Time (Today)</string>
+    <string name="frequency_v_time_today">Frequency v. Time (Today)</string>
 </resources>

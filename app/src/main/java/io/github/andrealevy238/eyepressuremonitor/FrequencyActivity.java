@@ -35,11 +35,15 @@ public class FrequencyActivity extends AppCompatActivity {
         setNav();
         model = new MeasurementViewModel(getApplication());
         GraphView pGraph = findViewById(R.id.frequencyGraph);
-        graph(pGraph, getMeasurements());
+        DataPoint[] dataPoints = getMeasurements();
+        graph(pGraph, dataPoints);
     }
 
     private void graph(GraphView graphView, DataPoint[] dataPoints) {
         LineGraphSeries<DataPoint> series = new LineGraphSeries<>(dataPoints);
+        if (series.isEmpty()) {
+            return;
+        }
         graphView.addSeries(series);
         String pattern = "MMM";
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat(pattern, Locale.US);
@@ -62,11 +66,6 @@ public class FrequencyActivity extends AppCompatActivity {
                     public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
                         // set item as selected to persist highlight
                         menuItem.setChecked(true);
-                        // close drawer when item is tapped
-                        mDrawerLayout.closeDrawers();
-
-                        // Add code here to update the UI based on the item selected
-                        // For example, swap UI fragments here
                         startNewActivity(menuItem);
                         return true;
                     }
@@ -74,8 +73,11 @@ public class FrequencyActivity extends AppCompatActivity {
     }
 
     private DataPoint[] getMeasurements() {
-        List<Measurement> measurements = model.getMeasurements().getValue();
-        int size = measurements != null ? measurements.size() : 0;
+        List<Measurement> measurements = model.getMeasurements();
+        if (measurements == null) {
+            return new DataPoint[0];
+        }
+        int size = measurements.size();
         DataPoint[] frequencies = new DataPoint[size];
 
         for (int i = 0; i < size; i++) {

@@ -6,7 +6,6 @@ import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.NavUtils;
 import android.support.v4.app.TaskStackBuilder;
-import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
@@ -22,7 +21,6 @@ import java.util.List;
 import java.util.Locale;
 
 public class PressureActivity extends AppCompatActivity {
-    private DrawerLayout mDrawerLayout;
     private MeasurementViewModel model;
 
     @Override
@@ -32,7 +30,6 @@ public class PressureActivity extends AppCompatActivity {
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         setNav();
-        mDrawerLayout = findViewById(R.id.drawerLayoutPressure);
         model = new MeasurementViewModel(getApplication());
         GraphView pGraph = findViewById(R.id.pressureGraph);
         DataPoint[] data = getMeasurements();
@@ -41,6 +38,9 @@ public class PressureActivity extends AppCompatActivity {
 
     private void graph(GraphView graphView, DataPoint[] dataPoints) {
         LineGraphSeries<DataPoint> series = new LineGraphSeries<>(dataPoints);
+        if (series.isEmpty()) {
+            return;
+        }
         graphView.addSeries(series);
         String pattern = "MMM";
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat(pattern, Locale.US);
@@ -56,7 +56,7 @@ public class PressureActivity extends AppCompatActivity {
     }
 
     private DataPoint[] getMeasurements() {
-        List<Measurement> measurements = model.getMeasurements().getValue();
+        List<Measurement> measurements = model.getMeasurements();
         int size = measurements != null ? measurements.size() : 0;
         DataPoint[] pressures = new DataPoint[size];
 
@@ -75,8 +75,7 @@ public class PressureActivity extends AppCompatActivity {
                     public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
                         // set item as selected to persist highlight
                         menuItem.setChecked(true);
-                        // close drawer when item is tapped
-                        mDrawerLayout.closeDrawers();
+
 
                         // Add code here to update the UI based on the item selected
                         // For example, swap UI fragments here
@@ -101,6 +100,8 @@ public class PressureActivity extends AppCompatActivity {
             case R.id.nav_frequency_today:
                 intent = new Intent(this, FrequencyToday.class);
                 break;
+            case R.id.nav_pressure_today:
+                intent = new Intent(this, PressureToday.class);
         }
         if (intent != null) {
             startActivity(intent);

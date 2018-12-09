@@ -6,7 +6,6 @@ import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.NavUtils;
 import android.support.v4.app.TaskStackBuilder;
-import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
@@ -24,7 +23,6 @@ import java.util.Locale;
 import static io.github.andrealevy238.eyepressuremonitor.FrequencyToday.get24HoursAgo;
 
 public class PressureToday extends AppCompatActivity {
-    private DrawerLayout mDrawerLayout;
     private MeasurementViewModel model;
     private Date h24;
 
@@ -34,16 +32,19 @@ public class PressureToday extends AppCompatActivity {
         setContentView(R.layout.activity_frequency);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        mDrawerLayout = findViewById(R.id.drawerLayoutPressureToday);
         h24 = get24HoursAgo();
         setNav();
         model = new MeasurementViewModel(getApplication(), h24);
         GraphView graphView = findViewById(R.id.pressureGraphToday);
-        graph(graphView, getMeasurements());
+        DataPoint[] dataPoints = getMeasurements();
+        graph(graphView, dataPoints);
     }
 
     private void graph(GraphView graphView, DataPoint[] dataPoints) {
         LineGraphSeries<DataPoint> series = new LineGraphSeries<>(dataPoints);
+        if (series.isEmpty()) {
+            return;
+        }
         graphView.addSeries(series);
         String pattern = "hh:mm";
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat(pattern, Locale.US);
@@ -64,11 +65,6 @@ public class PressureToday extends AppCompatActivity {
                     public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
                         // set item as selected to persist highlight
                         menuItem.setChecked(true);
-                        // close drawer when item is tapped
-                        mDrawerLayout.closeDrawers();
-
-                        // Add code here to update the UI based on the item selected
-                        // For example, swap UI fragments here
                         startNewActivity(menuItem);
                         return true;
                     }
@@ -76,10 +72,12 @@ public class PressureToday extends AppCompatActivity {
     }
 
     private DataPoint[] getMeasurements() {
-        List<Measurement> measurements = model.getMeasurements().getValue();
-        int size = measurements != null ? measurements.size() : 0;
+        List<Measurement> measurements = model.getMeasurements();
+        if (measurements == null) {
+            return new DataPoint[0];
+        }
+        int size = measurements.size();
         DataPoint[] pressures = new DataPoint[size];
-
         for (int i = 0; i < size; i++) {
             Measurement m = measurements.get(i);
             pressures[i] = new DataPoint(m.time, m.pressure);

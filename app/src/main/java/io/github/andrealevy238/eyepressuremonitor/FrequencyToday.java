@@ -6,7 +6,6 @@ import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.NavUtils;
 import android.support.v4.app.TaskStackBuilder;
-import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
@@ -23,7 +22,6 @@ import java.util.List;
 import java.util.Locale;
 
 public class FrequencyToday extends AppCompatActivity {
-    private DrawerLayout mDrawerLayout;
     private MeasurementViewModel model;
     private Date h24;
 
@@ -39,16 +37,19 @@ public class FrequencyToday extends AppCompatActivity {
         setContentView(R.layout.activity_frequency);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        mDrawerLayout = findViewById(R.id.drawerLayoutFrequencyToday);
         h24 = get24HoursAgo();
         setNav();
         model = new MeasurementViewModel(getApplication(), h24);
         GraphView graphView = findViewById(R.id.frequencyGraphToday);
-        graph(graphView, getMeasurements());
+        DataPoint[] dataPoints = getMeasurements();
+        graph(graphView, dataPoints);
     }
 
     private void graph(GraphView graphView, DataPoint[] dataPoints) {
         LineGraphSeries<DataPoint> series = new LineGraphSeries<>(dataPoints);
+        if (series.isEmpty()) {
+            return;
+        }
         graphView.addSeries(series);
         String pattern = "hh:mm";
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat(pattern, Locale.US);
@@ -69,9 +70,6 @@ public class FrequencyToday extends AppCompatActivity {
                     public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
                         // set item as selected to persist highlight
                         menuItem.setChecked(true);
-                        // close drawer when item is tapped
-                        mDrawerLayout.closeDrawers();
-
                         // Add code here to update the UI based on the item selected
                         // For example, swap UI fragments here
                         startNewActivity(menuItem);
@@ -81,8 +79,11 @@ public class FrequencyToday extends AppCompatActivity {
     }
 
     private DataPoint[] getMeasurements() {
-        List<Measurement> measurements = model.getMeasurements().getValue();
-        int size = measurements != null ? measurements.size() : 0;
+        List<Measurement> measurements = model.getMeasurements();
+        if (measurements == null) {
+            return new DataPoint[0];
+        }
+        int size = measurements.size();
         DataPoint[] frequencies = new DataPoint[size];
 
         for (int i = 0; i < size; i++) {
