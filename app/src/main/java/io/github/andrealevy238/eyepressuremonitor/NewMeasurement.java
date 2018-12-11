@@ -37,8 +37,6 @@ import static io.github.andrealevy238.eyepressuremonitor.DataConverter.toHex;
 public class NewMeasurement extends AppCompactIOIOActivity {
     protected static final int rx = 3;
     static final int tx = 4;
-    static final int cts = 11;
-    static final int rts = 10;
     static final int BAUD = 38400;
     protected volatile byte[] cur;
     Button start, save;
@@ -49,6 +47,12 @@ public class NewMeasurement extends AppCompactIOIOActivity {
     MeasurementViewModel model;
     private DrawerLayout mDrawerLayout;
 
+    /**
+     * Gets the frequency in MHz for the number of clock ticks recorded in 500 microseconds
+     *
+     * @param clockTicks the number of clock ticks recorded by the board
+     * @return the frequency
+     */
     public static double getFrequency(int clockTicks) {
         return (clockTicks * 8.0) / 499;
     }
@@ -92,7 +96,9 @@ public class NewMeasurement extends AppCompactIOIOActivity {
         });
     }
 
-
+    /**
+     * Creates the Navigation for this activity
+     */
     private void setNav() {
         NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(
@@ -111,6 +117,10 @@ public class NewMeasurement extends AppCompactIOIOActivity {
                 });
     }
 
+    /**
+     * Starts a new activity based on the MenuItem selected
+     * @param menuItem the menu item selected
+     */
     private void startNewActivity(MenuItem menuItem) {
         Intent intent = null;
         switch (menuItem.getItemId()) {
@@ -136,7 +146,9 @@ public class NewMeasurement extends AppCompactIOIOActivity {
     }
 
 
-
+    /**
+     *  Creates the action for the start button to display the measurement
+     */
     private void setStartButton() {
         int BUFSIZE = 2;
         cur = new byte[BUFSIZE];
@@ -174,6 +186,9 @@ public class NewMeasurement extends AppCompactIOIOActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    /**
+     * Saves the currently displayed measurement into the database
+     */
     private void setSave() {
         save = findViewById(R.id.save);
         save.setOnClickListener(new View.OnClickListener() {
@@ -190,6 +205,9 @@ public class NewMeasurement extends AppCompactIOIOActivity {
         });
     }
 
+    /**
+     * Displays the current time
+     */
     public void displayTime() {
         TextView timeView = findViewById(R.id.time);
         date = new GregorianCalendar().getTime();
@@ -197,12 +215,20 @@ public class NewMeasurement extends AppCompactIOIOActivity {
         timeView.setVisibility(View.VISIBLE);
     }
 
+    /**
+     * Displays the raw number that collected from the Rx pin
+     * @param raw the number of clock ticks
+     */
     public void displayPressure(int raw) {
         TextView textView = findViewById(R.id.pressure);
         textView.setText(String.valueOf(raw));
         textView.setVisibility(View.VISIBLE);
     }
 
+    /**
+     * Finds the frequency and displays it
+     * @param num the number of clock ticks
+     */
     public void displayFreq(int num) {
         TextView textView = findViewById(R.id.frequency);
         freq = getFrequency(num);
@@ -211,15 +237,29 @@ public class NewMeasurement extends AppCompactIOIOActivity {
         textView.setVisibility(View.VISIBLE);
     }
 
+    /**
+     * Formats the date into something that can be displayed
+     * @return a Date that can be displayed
+     */
     public String getDateString() {
         DateFormat dateFormat = DateFormat.getDateTimeInstance();
         return dateFormat.format(date);
     }
 
+    /**
+     * Gets the date displayed
+     * @return the Date that is displayed
+     */
     public Date getDate() {
         return date;
     }
 
+    /**
+     * Creates a message giving the hardware information from the board
+     * This is from an example application
+     * @param ioio the board connected
+     * @param title the Title given to the board
+     */
     private void showVersions(IOIO ioio, String title) {
         toast(String.format("%s\n" +
                         "IOIOLib: %s\n" +
@@ -233,6 +273,10 @@ public class NewMeasurement extends AppCompactIOIOActivity {
                 ioio.getImplVersion(IOIO.VersionType.HARDWARE_VER)));
     }
 
+    /**
+     * Displays a toast message with important error or hardware information
+     * @param message what is being displayed on the toast
+     */
     private void toast(final String message) {
         final Context context = this.getApplicationContext();
         runOnUiThread(new Runnable() {
@@ -295,6 +339,11 @@ public class NewMeasurement extends AppCompactIOIOActivity {
             }
         }
 
+        /**
+         * Reads information from the UART Rx pin
+         * Displays an LED if the read is blocking but the board is connected
+         * @throws ConnectionLostException when the board looses connection with the boad
+         */
         private void readUART() throws ConnectionLostException {
             byte[] raw = new byte[10];
             int i = -1;

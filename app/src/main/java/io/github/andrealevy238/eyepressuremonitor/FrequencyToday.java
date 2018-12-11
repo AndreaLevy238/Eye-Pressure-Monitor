@@ -25,6 +25,11 @@ public class FrequencyToday extends AppCompatActivity {
     private MeasurementViewModel model;
     private Date h24;
 
+    /**
+     * Gets the time that was exaclty 1 day ago
+     *
+     * @return the Java util date of 1 day ago
+     */
     static Date get24HoursAgo() {
         Calendar calendar = Calendar.getInstance();
         calendar.add(Calendar.HOUR, -24);
@@ -45,6 +50,11 @@ public class FrequencyToday extends AppCompatActivity {
         graph(graphView, dataPoints);
     }
 
+    /**
+     * Creates the Graph for this activity which is all the Frequencies in the last 6 months
+     * @param graphView  the view for the graph
+     * @param dataPoints the data in the graph
+     */
     private void graph(GraphView graphView, DataPoint[] dataPoints) {
         LineGraphSeries<DataPoint> series = new LineGraphSeries<>(dataPoints);
         if (series.isEmpty()) {
@@ -62,6 +72,9 @@ public class FrequencyToday extends AppCompatActivity {
         graphView.getViewport().setXAxisBoundsManual(true);
     }
 
+    /**
+     * Sets the navigation drawer for this activity and  the resulting actions
+     */
     private void setNav() {
         NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(
@@ -78,6 +91,11 @@ public class FrequencyToday extends AppCompatActivity {
                 });
     }
 
+    /**
+     * Gets the last day's worth data from the database
+     * @return a list of Data points with all the frequencies
+     * and their respective times
+     */
     private DataPoint[] getMeasurements() {
         List<Measurement> measurements = model.getMeasurements();
         if (measurements == null) {
@@ -93,6 +111,10 @@ public class FrequencyToday extends AppCompatActivity {
         return frequencies;
     }
 
+    /**
+     * Starts a new activity based on the MenuItem selected
+     * @param menuItem the menu item selected
+     */
     private void startNewActivity(MenuItem menuItem) {
         Intent intent = null;
         switch (menuItem.getItemId()) {
@@ -126,7 +148,8 @@ public class FrequencyToday extends AppCompatActivity {
                 if (upIntent == null) {
                     return false;
                 } else if (NavUtils.shouldUpRecreateTask(this, upIntent)) {
-                    // This activity is NOT part of this app's task, so create a new task
+                    // This activity is NOT part of this app's task
+                    // so create a new task
                     // when navigating up, with a synthesized back stack.
                     TaskStackBuilder.create(this)
                             // Add all of this activity's parents to the back stack

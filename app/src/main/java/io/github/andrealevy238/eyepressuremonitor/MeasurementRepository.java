@@ -11,18 +11,27 @@ public class MeasurementRepository {
     private MeasurementDao measurementDao;
     private LiveData<List<Measurement>> allMeasurements;
 
-
+    /**
+     * @param application the application for which the application is for
+     * @param date        the start date for the measurements
+     */
     MeasurementRepository(Application application, Date date) {
         AppDatabase db = AppDatabase.getDatabase(application);
         measurementDao = db.measurementDao();
         allMeasurements = measurementDao.getAll(date);
     }
 
+    /**
+     * @return a list of all the measurements
+     */
     LiveData<List<Measurement>> getAllMeasurements() {
         return allMeasurements;
     }
 
-
+    /**
+     * Inserts a measurement object into the database
+     * @param measurement the item that is being inserted
+     */
     public void insert(Measurement measurement) {
         new insertAsyncTask(measurementDao).execute(measurement);
     }

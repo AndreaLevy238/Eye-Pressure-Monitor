@@ -7,13 +7,13 @@
     <string name="start">start</string>
     <string name="save">save</string>
     <string name="frequency">Frequency</string>
-    <string name="pressure">Pressure</string>
+    <string name="pressure">Raw</string>
     <string name="new_measurement">New Measurement</string>
     <string name="history">History</string>
     <string name="title_activity_history">History</string>
-    <string name="pressure_vs_time">Pressure v. Time (6 months)</string>
+    <string name="pressure_vs_time">Raw v. Time (6 months)</string>
     <string name="frequency_vs_time">Frequency v. Time (6 months)</string>
-    <string name="title_activity_pressure">Pressure vs. Time (6 months)</string>
+    <string name="title_activity_pressure">Raw vs. Time (6 months)</string>
     <string name="title_activity_frequency">Frequency vs. Time (6 months)</string>
     <string name="eye_pressure_monitor">Eye Pressure Monitor</string>
     <string name="title_activity_frequency_today">Frequency vs Time (24 hours)</string>
@@ -22,7 +22,7 @@
     <string name="nav_header_title">Android Studio</string>
     <string name="nav_header_subtitle">android.studio@android.com</string>
     <string name="nav_header_desc">Navigation header</string>
-    <string name="title_activity_pressure_today">Pressure vs. Time (Today)</string>
-    <string name="pressure_v_time_today">Pressure v. Time (Today)</string>
+    <string name="title_activity_pressure_today">Raw vs. Time (Today)</string>
+    <string name="pressure_v_time_today">Raw v. Time (Today)</string>
     <string name="frequency_v_time_today">Frequency v. Time (Today)</string>
 </resources>

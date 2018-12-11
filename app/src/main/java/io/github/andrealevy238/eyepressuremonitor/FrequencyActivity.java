@@ -6,7 +6,6 @@ import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.NavUtils;
 import android.support.v4.app.TaskStackBuilder;
-import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
@@ -22,7 +21,6 @@ import java.util.List;
 import java.util.Locale;
 
 public class FrequencyActivity extends AppCompatActivity {
-    private DrawerLayout mDrawerLayout;
     private MeasurementViewModel model;
 
     @Override
@@ -31,7 +29,6 @@ public class FrequencyActivity extends AppCompatActivity {
         setContentView(R.layout.activity_frequency);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        mDrawerLayout = findViewById(R.id.drawerLayoutFrequency);
         setNav();
         model = new MeasurementViewModel(getApplication());
         GraphView pGraph = findViewById(R.id.frequencyGraph);
@@ -39,6 +36,12 @@ public class FrequencyActivity extends AppCompatActivity {
         graph(pGraph, dataPoints);
     }
 
+    /**
+     * Creates the Graph for this activity which is all the Frequencies in the last 6 months
+     *
+     * @param graphView  the view for the graph
+     * @param dataPoints the data in the graph
+     */
     private void graph(GraphView graphView, DataPoint[] dataPoints) {
         LineGraphSeries<DataPoint> series = new LineGraphSeries<>(dataPoints);
         if (series.isEmpty()) {
@@ -58,6 +61,9 @@ public class FrequencyActivity extends AppCompatActivity {
         graphView.getViewport().setXAxisBoundsManual(true);
     }
 
+    /**
+     * Sets the navigation drawer for this activity and  the resulting actions
+     */
     private void setNav() {
         NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(
@@ -72,6 +78,10 @@ public class FrequencyActivity extends AppCompatActivity {
                 });
     }
 
+    /**
+     * Gets the last 6 months of data from the database
+     * @return a list of Data points with all the frequencies and their respective times
+     */
     private DataPoint[] getMeasurements() {
         List<Measurement> measurements = model.getMeasurements();
         if (measurements == null) {
@@ -87,6 +97,10 @@ public class FrequencyActivity extends AppCompatActivity {
         return frequencies;
     }
 
+    /**
+     * Starts a new activity based on the item selected
+     * @param menuItem the item selected
+     */
     private void startNewActivity(MenuItem menuItem) {
         Intent intent = null;
         switch (menuItem.getItemId()) {

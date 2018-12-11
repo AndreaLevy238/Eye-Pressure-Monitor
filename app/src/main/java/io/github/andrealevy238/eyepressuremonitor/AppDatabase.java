@@ -13,6 +13,10 @@ abstract class AppDatabase extends RoomDatabase {
 
     private static volatile AppDatabase INSTANCE;
 
+    /**
+     * @param context the application Context
+     * @return an instance of the database based on the RoomDatabase Interface
+     */
     static AppDatabase getDatabase(final Context context) {
         if (INSTANCE == null) {
             synchronized (AppDatabase.class) {

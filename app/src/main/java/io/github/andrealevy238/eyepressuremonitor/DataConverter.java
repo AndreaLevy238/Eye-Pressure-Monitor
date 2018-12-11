@@ -19,5 +19,4 @@ class DataConverter {
         return bytes[0] & 0xFF | (bytes[1] & 0xFF) << 8;
     }
 
-
 }

@@ -36,6 +36,12 @@ public class PressureActivity extends AppCompatActivity {
         graph(pGraph, data);
     }
 
+    /**
+     * Creates the Graph for this activity which is all the raw measurements in the last 6 months
+     *
+     * @param graphView  the view for the graph
+     * @param dataPoints the data in the graph
+     */
     private void graph(GraphView graphView, DataPoint[] dataPoints) {
         LineGraphSeries<DataPoint> series = new LineGraphSeries<>(dataPoints);
         if (series.isEmpty()) {
@@ -55,6 +61,9 @@ public class PressureActivity extends AppCompatActivity {
         graphView.getViewport().setXAxisBoundsManual(true);
     }
 
+    /**
+     * @return a list of all the raw measurements from the last 6 months
+     */
     private DataPoint[] getMeasurements() {
         List<Measurement> measurements = model.getMeasurements();
         int size = measurements != null ? measurements.size() : 0;
@@ -67,6 +76,9 @@ public class PressureActivity extends AppCompatActivity {
         return pressures;
     }
 
+    /**
+     * Sets the navigation between activities
+     */
     private void setNav() {
         NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(
@@ -85,6 +97,10 @@ public class PressureActivity extends AppCompatActivity {
                 });
     }
 
+    /**
+     * Starts a new activity based on the MenuItem selected
+     * @param menuItem the menu item selected
+     */
     private void startNewActivity(MenuItem menuItem) {
         Intent intent = null;
         switch (menuItem.getItemId()) {

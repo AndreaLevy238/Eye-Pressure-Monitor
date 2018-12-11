@@ -3,23 +3,18 @@
     <group android:checkableBehavior="single">
         <item
             android:id="@+id/nav_new_measurement"
-            android:icon="@drawable/ic_open_in_new_black_24dp"
             android:title="@string/new_measurement" />
         <item
             android:id="@+id/nav_pressure"
-            android:icon="@drawable/ic_trending_up_black_24p"
             android:title="@string/pressure_vs_time" />
         <item
             android:id="@+id/nav_frequency"
-            android:icon="@drawable/ic_trending_up_black_24p"
             android:title="@string/frequency_vs_time" />
         <item
             android:id="@+id/nav_pressure_today"
-            android:icon="@drawable/ic_trending_up_black_24p"
             android:title="@string/pressure_v_time_today" />
         <item
             android:id="@+id/nav_frequency_today"
-            android:icon="@drawable/ic_trending_up_black_24p"
             android:title="@string/frequency_v_time_today" />
     </group>
 </menu>
