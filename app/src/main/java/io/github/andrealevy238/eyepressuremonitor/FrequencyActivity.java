@@ -1,5 +1,6 @@
 package io.github.andrealevy238.eyepressuremonitor;
 
+import android.arch.lifecycle.ViewModelProviders;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -8,6 +9,7 @@ import android.support.v4.app.NavUtils;
 import android.support.v4.app.TaskStackBuilder;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.MenuItem;
 
 import com.jjoe64.graphview.GraphView;
@@ -16,7 +18,7 @@ import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
 
 import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
 
@@ -30,7 +32,7 @@ public class FrequencyActivity extends AppCompatActivity {
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         setNav();
-        model = new MeasurementViewModel(getApplication());
+        model = ViewModelProviders.of(this).get(MeasurementViewModel.class);
         GraphView pGraph = findViewById(R.id.frequencyGraph);
         DataPoint[] dataPoints = getMeasurements();
         graph(pGraph, dataPoints);
@@ -48,17 +50,21 @@ public class FrequencyActivity extends AppCompatActivity {
             return;
         }
         graphView.addSeries(series);
-        String pattern = "MMM";
+        String pattern;
+        if (dataPoints.length < 2) {
+            pattern = "hh:mm:ss";
+            graphView.getGridLabelRenderer().setNumHorizontalLabels(3);
+        } else {
+            pattern = "MM/dd";
+        }
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat(pattern, Locale.US);
         DateAsXAxisLabelFormatter d = new DateAsXAxisLabelFormatter(getApplicationContext(), simpleDateFormat);
         graphView.getGridLabelRenderer().setLabelFormatter(d);
-        Date min = model.sixMonthsAgo();
-        long now = System.currentTimeMillis();
-        graphView.getViewport().setMinX(min.getTime());
-        graphView.getViewport().setMaxX(now);
-        graphView.getGridLabelRenderer().setHumanRounding(false);
-        graphView.getGridLabelRenderer().setNumHorizontalLabels(6);
-        graphView.getViewport().setXAxisBoundsManual(true);
+        graphView.getViewport().setScalable(true);
+        graphView.getViewport().setScrollable(true);
+        graphView.getViewport().setScalableY(true);
+        graphView.getViewport().setScrollableY(true);
+
     }
 
     /**
@@ -83,13 +89,15 @@ public class FrequencyActivity extends AppCompatActivity {
      * @return a list of Data points with all the frequencies and their respective times
      */
     private DataPoint[] getMeasurements() {
-        List<Measurement> measurements = model.getMeasurements();
+        List<Measurement> measurements = model.getMeasurements().getValue();
         if (measurements == null) {
-            return new DataPoint[0];
+            Log.e("Null Measurements", "measurements are null");
+            DataPoint[] pressures = new DataPoint[1];
+            pressures[0] = new DataPoint(Calendar.getInstance().getTime(), 0);
+            return pressures;
         }
         int size = measurements.size();
         DataPoint[] frequencies = new DataPoint[size];
-
         for (int i = 0; i < size; i++) {
             Measurement m = measurements.get(i);
             frequencies[i] = new DataPoint(m.time, m.frequency);
@@ -113,12 +121,7 @@ public class FrequencyActivity extends AppCompatActivity {
             case R.id.nav_pressure:
                 intent = new Intent(this, PressureActivity.class);
                 break;
-            case R.id.nav_frequency_today:
-                intent = new Intent(this, FrequencyToday.class);
-                break;
-            case R.id.nav_pressure_today:
-                intent = new Intent(this, PressureToday.class);
-                break;
+
         }
         if (intent != null) {
             startActivity(intent);

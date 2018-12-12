@@ -61,24 +61,6 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="io.github.andrealevy238.eyepressuremonitor.NewMeasurement" />
         </activity>
-        <activity
-            android:name=".FrequencyToday"
-            android:label="@string/title_activity_frequency_today"
-            android:parentActivityName=".NewMeasurement"
-            android:theme="@style/AppTheme">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value="io.github.andrealevy238.eyepressuremonitor.NewMeasurement" />
-        </activity>
-        <activity
-            android:name=".PressureToday"
-            android:label="@string/title_activity_pressure_today"
-            android:parentActivityName=".NewMeasurement"
-            android:theme="@style/AppTheme">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value="io.github.andrealevy238.eyepressuremonitor.NewMeasurement" />
-        </activity>
     </application>
 
 </manifest>

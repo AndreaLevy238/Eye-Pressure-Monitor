@@ -6,7 +6,7 @@ import android.arch.persistence.room.RoomDatabase;
 import android.arch.persistence.room.TypeConverters;
 import android.content.Context;
 
-@Database(entities = {Measurement.class}, version = 2)
+@Database(entities = {Measurement.class}, version = 1)
 @TypeConverters({Converters.class})
 abstract class AppDatabase extends RoomDatabase {
     abstract MeasurementDao measurementDao();
@@ -24,10 +24,12 @@ abstract class AppDatabase extends RoomDatabase {
                     INSTANCE = Room.databaseBuilder(context.getApplicationContext(),
                             AppDatabase.class,
                             "measurement_database"
-                    ).build();
+                    ).fallbackToDestructiveMigration().build();
                 }
             }
         }
         return INSTANCE;
     }
+
+
 }

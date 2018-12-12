@@ -6,14 +6,16 @@ import android.arch.persistence.room.PrimaryKey;
 
 import java.util.Date;
 
-@Entity
+@Entity(tableName = "measurement")
 public class Measurement {
     @ColumnInfo(name = "Frequency")
     public double frequency;
     @ColumnInfo(name = "Pressure")
     public int pressure;
+
     @ColumnInfo(name = "Time")
     public Date time;
+
     @PrimaryKey(autoGenerate = true)
     @ColumnInfo(name = "mID")
     public int mId;

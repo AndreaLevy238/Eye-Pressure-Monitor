@@ -10,11 +10,5 @@
         <item
             android:id="@+id/nav_frequency"
             android:title="@string/frequency_vs_time" />
-        <item
-            android:id="@+id/nav_pressure_today"
-            android:title="@string/pressure_v_time_today" />
-        <item
-            android:id="@+id/nav_frequency_today"
-            android:title="@string/frequency_v_time_today" />
     </group>
 </menu>

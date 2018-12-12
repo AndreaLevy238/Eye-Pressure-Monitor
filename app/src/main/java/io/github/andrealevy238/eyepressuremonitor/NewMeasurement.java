@@ -1,5 +1,6 @@
 package io.github.andrealevy238.eyepressuremonitor;
 
+import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -64,7 +65,7 @@ public class NewMeasurement extends AppCompactIOIOActivity {
         freq = -1;
         setNav();
         setDrawer();
-        model = new MeasurementViewModel(getApplication());
+        model = ViewModelProviders.of(this).get(MeasurementViewModel.class);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         setStartButton();
@@ -132,12 +133,6 @@ public class NewMeasurement extends AppCompactIOIOActivity {
                 break;
             case R.id.nav_pressure:
                 intent = new Intent(this, PressureActivity.class);
-                break;
-            case R.id.nav_frequency_today:
-                intent = new Intent(this, FrequencyToday.class);
-                break;
-            case R.id.nav_pressure_today:
-                intent = new Intent(this, PressureToday.class);
                 break;
         }
         if (intent != null) {
@@ -333,7 +328,7 @@ public class NewMeasurement extends AppCompactIOIOActivity {
             if (uart_ != null) {
                 try {
                     readUART();
-                } catch (Exception e) {
+                } catch (ConnectionLostException | InterruptedException e) {
                     Log.e("UART_Exception", e.getMessage());
                 }
             }
@@ -344,7 +339,7 @@ public class NewMeasurement extends AppCompactIOIOActivity {
          * Displays an LED if the read is blocking but the board is connected
          * @throws ConnectionLostException when the board looses connection with the boad
          */
-        private void readUART() throws ConnectionLostException {
+        private void readUART() throws ConnectionLostException, InterruptedException {
             byte[] raw = new byte[10];
             int i = -1;
             try {
@@ -362,6 +357,7 @@ public class NewMeasurement extends AppCompactIOIOActivity {
                 cur[0] = raw[b0];
                 cur[1] = raw[b0 + 1];
             }
+            Thread.sleep(10);
         }
 
         @Override

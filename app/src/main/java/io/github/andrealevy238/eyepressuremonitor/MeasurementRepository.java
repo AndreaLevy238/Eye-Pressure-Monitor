@@ -4,7 +4,6 @@ import android.app.Application;
 import android.arch.lifecycle.LiveData;
 import android.os.AsyncTask;
 
-import java.util.Date;
 import java.util.List;
 
 public class MeasurementRepository {
@@ -13,12 +12,11 @@ public class MeasurementRepository {
 
     /**
      * @param application the application for which the application is for
-     * @param date        the start date for the measurements
      */
-    MeasurementRepository(Application application, Date date) {
+    MeasurementRepository(Application application) {
         AppDatabase db = AppDatabase.getDatabase(application);
         measurementDao = db.measurementDao();
-        allMeasurements = measurementDao.getAll(date);
+        allMeasurements = measurementDao.getAll();
     }
 
     /**
